@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "silentforging:block/tool_forge"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "block.silentforging.tool_forge": "Tool Forge",
+  "container.silentforging.tool_forge": "Tool Forge",
+  "itemGroup.silentforging": "Silent Forging",
+  "button.silentforging.bend": "+ Bend",
+  "button.silentforging.hit": "+ Hit",
+  "button.silentforging.fold": "- Fold",
+  "button.silentforging.extrude": "- Extrude",
+  "button.silentforging.draw": "+ Draw",
+  "button.silentforging.temper": "- Temper",
+  "gui.silentforging.progress": "FORGE PROGRESS",
+  "gui.silentforging.actions": "ACTIONS - KEYS 1-6",
+  "quality.silentforging.crude": "Crude",
+  "quality.silentforging.normal": "Normal",
+  "quality.silentforging.pristine": "Pristine"
+}
