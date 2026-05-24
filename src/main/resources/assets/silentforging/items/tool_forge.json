@@ -1,0 +1,6 @@
+{
+	"model": {
+		"type": "minecraft:model",
+		"model": "silentforging:block/tool_forge"
+	}
+}

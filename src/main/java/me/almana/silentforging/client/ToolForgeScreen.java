@@ -8,15 +8,34 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     private static final int WIDTH = 248;
     private static final int HEIGHT = 238;
     private static final int MACHINE_BOTTOM = 146;
     private static final int INV_TOP = 150;
+    private static final ForgeAction[] DISPLAYED_ACTIONS = {
+            ForgeAction.BEND,
+            ForgeAction.HIT,
+            ForgeAction.DRAW,
+            ForgeAction.FOLD,
+            ForgeAction.EXTRUDE,
+            ForgeAction.TEMPER
+    };
 
     private static final int FRAME_LIGHT = 0xFF7A6A55;
     private static final int FRAME_MID = 0xFF54483A;
@@ -26,11 +45,23 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     private static final int PLATE_DEEP = 0xFF272014;
     private static final int ACCENT = 0xFFE08A3A;
     private static final int ACCENT_HOT = 0xFFFFD35A;
-    private static final int TARGET_BLUE = 0xFF3A86FF;
+    private static final int BLUEPRINT_BLUE = 0xFF3A86FF;
     private static final int INK = 0xFFF4E6C8;
     private static final int INK_DIM = 0xFFA89878;
     private static final int SLOT_INNER = 0xFF0C0805;
     private static final int BLUEPRINT_GREEN = 0xFF5CD66A;
+
+    private static final Identifier GHOST_BLUEPRINT = Identifier.fromNamespaceAndPath("silentgear", "textures/item/blueprint_package.png");
+    private static final List<Identifier> GHOST_OUTPUT = List.of(
+            Identifier.fromNamespaceAndPath("silentgear", "textures/item/sword/main_generic_hc.png"),
+            Identifier.fromNamespaceAndPath("silentgear", "textures/item/axe/main_generic_hc.png"),
+            Identifier.fromNamespaceAndPath("silentgear", "textures/item/shovel/main_generic_hc.png"),
+            Identifier.fromNamespaceAndPath("silentgear", "textures/item/hoe/main_generic_hc.png")
+    );
+    private static final TagKey<Item> INGOTS_TAG = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots"));
+    private static final TagKey<Item> GEMS_TAG = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "gems"));
+    private static final float GHOST_ALPHA = 0.35F;
+    private static final int GHOST_CYCLE_TICKS = 40;
 
     private static final int BAR_X = 12;
     private static final int BAR_Y = 78;
@@ -38,6 +69,8 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     private static final int BAR_H = 12;
 
     private final Button[] actionButtons = new Button[ForgeAction.values().length];
+    private int ticks;
+    private List<Identifier> materialGhosts;
 
     public ToolForgeScreen(ToolForgeMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, WIDTH, HEIGHT);
@@ -46,20 +79,19 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     @Override
     protected void init() {
         super.init();
-        ForgeAction[] actions = ForgeAction.values();
         int btnW = 36;
         int gap = 2;
         int y = topPos + 116;
-        for (int i = 0; i < actions.length; i++) {
-            ForgeAction action = actions[i];
-            int x = leftPos + 12 + i * (btnW + gap);
-            int id = i;
+        for (int i = 0; i < DISPLAYED_ACTIONS.length; i++) {
+            ForgeAction action = DISPLAYED_ACTIONS[i];
+            int x = leftPos + 8 + i * (btnW + gap) + (i > 2 ? 14 : 0);
+            int id = action.ordinal();
             Button button = Button.builder(
                             Component.translatable("button.silentforging." + action.key()),
                             b -> minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id))
                     .bounds(x, y, btnW, 22)
                     .build();
-            actionButtons[i] = button;
+            actionButtons[id] = button;
             addRenderableWidget(button);
         }
     }
@@ -68,8 +100,8 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     public boolean keyPressed(KeyEvent event) {
         if (menu.canForge()) {
             int index = event.key() - GLFW.GLFW_KEY_1;
-            if (index >= 0 && index < actionButtons.length) {
-                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, index);
+            if (index >= 0 && index < DISPLAYED_ACTIONS.length) {
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, DISPLAYED_ACTIONS[index].ordinal());
                 return true;
             }
         }
@@ -78,6 +110,7 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
 
     @Override
     protected void containerTick() {
+        ticks++;
         boolean canForge = menu.canForge();
         for (Button button : actionButtons) {
             button.active = canForge;
@@ -99,6 +132,7 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
         drawSlots(graphics, x, y);
         drawProgress(graphics, x, y);
         drawActionsLabel(graphics, x, y);
+        drawActionDivider(graphics, x, y);
 
         panel(graphics, x, y + INV_TOP, WIDTH, HEIGHT - INV_TOP, PLATE, true);
         drawPlayerSlots(graphics, x, y);
@@ -128,46 +162,53 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     }
 
     private void drawSlots(GuiGraphicsExtractor graphics, int ox, int oy) {
-        forgeSlot(graphics, ox + 29, oy + 46, TARGET_BLUE);
+        forgeSlot(graphics, ox + 29, oy + 46, BLUEPRINT_BLUE);
         forgeSlot(graphics, ox + 85, oy + 46, INK_DIM);
         forgeSlot(graphics, ox + 141, oy + 46, BLUEPRINT_GREEN);
         drawGhostHints(graphics, ox, oy);
-        graphics.text(font, "<", ox + 56, oy + 49, menu.getSlot(ToolForgeBlockEntity.SLOT_OUTPUT).hasItem() ? ACCENT_HOT : INK_DIM, false);
-        graphics.text(font, "<", ox + 112, oy + 49, menu.phase() == ToolForgeBlockEntity.PHASE_FORGING ? ACCENT_HOT : INK_DIM, false);
+        graphics.text(font, ">", ox + 56, oy + 49, menu.getSlot(ToolForgeBlockEntity.SLOT_BLUEPRINT).hasItem() ? ACCENT_HOT : INK_DIM, false);
+        graphics.text(font, ">", ox + 112, oy + 49, menu.hasForgeInputs() ? ACCENT_HOT : INK_DIM, false);
     }
 
     private void drawGhostHints(GuiGraphicsExtractor graphics, int ox, int oy) {
-        if (!menu.getSlot(ToolForgeBlockEntity.SLOT_OUTPUT).hasItem()) {
-            ghostOutput(graphics, ox + 35, oy + 51);
+        if (!menu.getSlot(ToolForgeBlockEntity.SLOT_BLUEPRINT).hasItem()) {
+            graphics.blit(RenderPipelines.GUI_TEXTURED, GHOST_BLUEPRINT, ox + 30, oy + 47, 0.0F, 0.0F, 16, 16, 16, 16, ARGB.white(GHOST_ALPHA));
         }
         if (!menu.getSlot(ToolForgeBlockEntity.SLOT_MATERIAL).hasItem()) {
-            ghostMaterial(graphics, ox + 90, oy + 52);
+            cycleGhost(graphics, materialGhosts(), ox + 86, oy + 47);
         }
-        if (!menu.getSlot(ToolForgeBlockEntity.SLOT_BLUEPRINT).hasItem()) {
-            ghostBlueprint(graphics, ox + 146, oy + 51);
+        if (!menu.getSlot(ToolForgeBlockEntity.SLOT_OUTPUT).hasItem()) {
+            cycleGhost(graphics, GHOST_OUTPUT, ox + 142, oy + 47);
         }
     }
 
-    private void ghostOutput(GuiGraphicsExtractor graphics, int x, int y) {
-        int color = 0x553A86FF;
-        graphics.fill(x, y, x + 8, y + 8, color);
-        graphics.fill(x + 2, y + 2, x + 10, y + 10, color);
+    private void cycleGhost(GuiGraphicsExtractor graphics, List<Identifier> textures, int x, int y) {
+        if (textures.isEmpty()) {
+            return;
+        }
+        Identifier texture = textures.get((ticks / GHOST_CYCLE_TICKS) % textures.size());
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, 0.0F, 0.0F, 16, 16, 16, 16, ARGB.white(GHOST_ALPHA));
     }
 
-    private void ghostMaterial(GuiGraphicsExtractor graphics, int x, int y) {
-        int color = 0x66A89878;
-        graphics.fill(x + 2, y, x + 12, y + 3, color);
-        graphics.fill(x, y + 3, x + 14, y + 8, color);
-        graphics.fill(x + 1, y + 8, x + 13, y + 11, color);
+    private List<Identifier> materialGhosts() {
+        if (materialGhosts == null) {
+            materialGhosts = itemTextures(INGOTS_TAG);
+            materialGhosts.addAll(itemTextures(GEMS_TAG));
+        }
+        return materialGhosts;
     }
 
-    private void ghostBlueprint(GuiGraphicsExtractor graphics, int x, int y) {
-        int color = 0x665CD66A;
-        graphics.fill(x + 2, y, x + 10, y + 12, color);
-        graphics.fill(x + 10, y + 3, x + 13, y + 12, color);
-        graphics.fill(x + 9, y, x + 13, y + 4, 0x335CD66A);
-        graphics.fill(x + 4, y + 4, x + 9, y + 5, SLOT_INNER);
-        graphics.fill(x + 4, y + 7, x + 11, y + 8, SLOT_INNER);
+    private static List<Identifier> itemTextures(TagKey<Item> tag) {
+        List<Identifier> textures = new ArrayList<>();
+        BuiltInRegistries.ITEM.get(tag).ifPresent(holders -> holders.forEach(holder -> {
+            Item item = holder.value();
+            if (item instanceof BlockItem) {
+                return;
+            }
+            Identifier id = BuiltInRegistries.ITEM.getKey(item);
+            textures.add(Identifier.fromNamespaceAndPath(id.getNamespace(), "textures/item/" + id.getPath() + ".png"));
+        }));
+        return textures;
     }
 
     private void forgeSlot(GuiGraphicsExtractor graphics, int x, int y, int accent) {
@@ -208,10 +249,10 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
         int tzL = x + BAR_W * targetMin / 100;
         int tzR = x + BAR_W * targetMax / 100;
         graphics.fill(tzL, y, tzR, y + BAR_H, 0x553A86FF);
-        graphics.fill(tzL, y, tzL + 1, y + BAR_H, TARGET_BLUE);
-        graphics.fill(tzR - 1, y, tzR, y + BAR_H, TARGET_BLUE);
+        graphics.fill(tzL, y, tzL + 1, y + BAR_H, BLUEPRINT_BLUE);
+        graphics.fill(tzR - 1, y, tzR, y + BAR_H, BLUEPRINT_BLUE);
         int tzC = (tzL + tzR) / 2;
-        graphics.fill(tzC, y - 3, tzC + 1, y, TARGET_BLUE);
+        graphics.fill(tzC, y - 3, tzC + 1, y, BLUEPRINT_BLUE);
 
         int prog = Math.max(0, Math.min(100, menu.progress()));
         int fillW = BAR_W * prog / 100;
@@ -230,6 +271,10 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
 
     private void drawActionsLabel(GuiGraphicsExtractor graphics, int ox, int oy) {
         graphics.text(font, Component.translatable("gui.silentforging.actions"), ox + 12, oy + 106, INK_DIM, false);
+    }
+
+    private void drawActionDivider(GuiGraphicsExtractor graphics, int ox, int oy) {
+        graphics.text(font, "|", ox + 126, oy + 122, INK_DIM, false);
     }
 
     private void panel(GuiGraphicsExtractor graphics, int x, int y, int w, int h, int base, boolean out) {

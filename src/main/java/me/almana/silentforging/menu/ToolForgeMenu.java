@@ -36,7 +36,31 @@ public class ToolForgeMenu extends AbstractContainerMenu {
         this.access = ContainerLevelAccess.create(forge.getLevel(), forge.getBlockPos());
 
         Container container = forge.inventory();
-        addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_OUTPUT, 30, 47) {
+        addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_BLUEPRINT, 30, 47) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return stack.getItem() instanceof IBlueprint;
+            }
+
+            @Override
+            public void onTake(Player player, ItemStack stack) {
+                super.onTake(player, stack);
+                forge.resetProgress();
+            }
+        });
+        addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_MATERIAL, 86, 47) {
+            @Override
+            public boolean mayPlace(ItemStack stack) {
+                return MaterialInstance.from(stack) != null;
+            }
+
+            @Override
+            public void onTake(Player player, ItemStack stack) {
+                super.onTake(player, stack);
+                forge.resetProgress();
+            }
+        });
+        addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_OUTPUT, 142, 47) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -46,17 +70,11 @@ public class ToolForgeMenu extends AbstractContainerMenu {
             public boolean mayPickup(Player player) {
                 return hasItem();
             }
-        });
-        addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_MATERIAL, 86, 47) {
+
             @Override
-            public boolean mayPlace(ItemStack stack) {
-                return MaterialInstance.from(stack) != null;
-            }
-        });
-        addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_BLUEPRINT, 142, 47) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return stack.getItem() instanceof IBlueprint;
+            public void onTake(Player player, ItemStack stack) {
+                super.onTake(player, stack);
+                forge.resetProgress();
             }
         });
 
@@ -131,13 +149,24 @@ public class ToolForgeMenu extends AbstractContainerMenu {
                 if (!moveItemStackTo(stack, FORGE_SLOTS, slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_MATERIAL, FORGE_SLOTS, false)) {
+            } else if (stack.getItem() instanceof IBlueprint) {
+                if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_BLUEPRINT, ToolForgeBlockEntity.SLOT_BLUEPRINT + 1, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (MaterialInstance.from(stack) != null) {
+                if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_MATERIAL, ToolForgeBlockEntity.SLOT_MATERIAL + 1, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else {
                 return ItemStack.EMPTY;
             }
             if (stack.isEmpty()) {
                 slot.setByPlayer(ItemStack.EMPTY);
             } else {
                 slot.setChanged();
+            }
+            if (index < FORGE_SLOTS) {
+                forge.resetProgress();
             }
         }
         return result;

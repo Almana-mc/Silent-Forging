@@ -18,6 +18,7 @@ public final class SfBlocks {
                     .mapColor(MapColor.METAL)
                     .strength(3.5F)
                     .requiresCorrectToolForDrops()
+                    .noOcclusion()
     );
 
     private SfBlocks() {

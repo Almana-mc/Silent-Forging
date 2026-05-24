@@ -11,7 +11,11 @@ import me.almana.silentforging.recipe.SilentGearPartRecipes;
 import me.almana.silentforging.setup.SfBlockEntities;
 import me.almana.silentforging.setup.SfRecipes;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -31,9 +35,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class ToolForgeBlockEntity extends BlockEntity implements MenuProvider {
-    public static final int SLOT_OUTPUT = 0;
+    public static final int SLOT_BLUEPRINT = 0;
     public static final int SLOT_MATERIAL = 1;
-    public static final int SLOT_BLUEPRINT = 2;
+    public static final int SLOT_OUTPUT = 2;
 
     public static final int DATA_PROGRESS = 0;
     public static final int DATA_QUALITY = 1;
@@ -135,18 +139,36 @@ public class ToolForgeBlockEntity extends BlockEntity implements MenuProvider {
         work = work.withAction(action);
         quality = benchmark.qualityFor(work.strikes());
 
+        playSound(SoundEvents.ANVIL_LAND, 0.4f, 1.4f);
         if (benchmark.hasFailed(work.strikes())) {
             fail(recipe);
+            playSound(SoundEvents.ITEM_BREAK, 0.8f, 1.0f);
         } else if (work.isComplete(recipe.range())) {
             finish(recipe, quality);
+            playSound(SoundEvents.ENCHANTMENT_TABLE_USE, 0.8f, 1.0f);
         }
         setChanged();
+    }
+
+    private void playSound(SoundEvent sound, float volume, float pitch) {
+        if (level != null) {
+            level.playSound(null, worldPosition, sound, SoundSource.BLOCKS, volume, pitch);
+        }
+    }
+
+    private void playSound(Holder<SoundEvent> sound, float volume, float pitch) {
+        playSound(sound.value(), volume, pitch);
     }
 
     private void clearWork() {
         work = null;
         quality = ForgeQuality.NORMAL;
         phase = PHASE_FORGING;
+    }
+
+    public void resetProgress() {
+        clearWork();
+        setChanged();
     }
 
     private void finish(ForgingRecipe recipe, ForgeQuality quality) {
