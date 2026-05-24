@@ -6,6 +6,7 @@ import me.almana.silentforging.forge.ForgeQuality;
 import me.almana.silentforging.forge.ForgeStrikeBenchmark;
 import me.almana.silentforging.forge.ForgeWork;
 import me.almana.silentforging.menu.ToolForgeMenu;
+import me.almana.silentforging.recipe.ForgeMaterialTags;
 import me.almana.silentforging.recipe.ForgingRecipe;
 import me.almana.silentforging.recipe.SilentGearPartRecipes;
 import me.almana.silentforging.setup.SfBlockEntities;
@@ -110,6 +111,9 @@ public class ToolForgeBlockEntity extends BlockEntity implements MenuProvider {
         }
         ItemStack blueprint = inventory.getItem(SLOT_BLUEPRINT);
         ItemStack material = inventory.getItem(SLOT_MATERIAL);
+        if (!ForgeMaterialTags.isIngotOrGem(material)) {
+            return Optional.empty();
+        }
         Optional<ActiveProfile> datapackProfile = serverLevel.recipeAccess()
                 .recipeMap()
                 .byType(SfRecipes.FORGING_TYPE.get())

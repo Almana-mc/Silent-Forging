@@ -31,23 +31,32 @@ public final class SilentGearPartRecipes {
 
     public static void captureAndRemove(ModifyRecipeJsonsEvent event) {
         PART_RECIPES.clear();
-        event.getRecipeJsons().entrySet().removeIf(entry -> {
+        Map<Identifier, JsonElement> rewrites = new HashMap<>();
+        for (Map.Entry<Identifier, JsonElement> entry : event.getRecipeJsons().entrySet()) {
             Identifier id = entry.getKey();
             if (!isSilentGearCompoundRecipeId(id)) {
-                return false;
+                continue;
             }
-            Optional<Recipe<?>> decoded = Recipe.CODEC.parse(event.getOps(), entry.getValue()).result();
+            JsonElement original = entry.getValue();
+            Optional<Recipe<?>> decoded = Recipe.CODEC.parse(event.getOps(), original).result();
             if (decoded.isPresent() && decoded.get() instanceof ShapelessCompoundPartRecipe recipe) {
                 ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, id);
                 PART_RECIPES.put(id, new CapturedRecipe(
                         new RecipeHolder<>(key, recipe),
-                        materialCost(entry.getValue()),
-                        staticIngredients(event, entry.getValue())
+                        materialCost(original),
+                        staticIngredients(event, original)
                 ));
-                return true;
+                rewrites.put(id, wrap(original));
             }
-            return false;
-        });
+        }
+        event.getRecipeJsons().putAll(rewrites);
+    }
+
+    private static JsonObject wrap(JsonElement original) {
+        JsonObject json = new JsonObject();
+        json.addProperty("type", "silentforging:gated_part");
+        json.add("delegate", original);
+        return json;
     }
 
     public static Optional<Match> match(ForgingRecipe profile, ItemStack blueprint, ItemStack material, Level level) {

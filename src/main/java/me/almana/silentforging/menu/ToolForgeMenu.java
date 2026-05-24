@@ -3,6 +3,7 @@ package me.almana.silentforging.menu;
 import me.almana.silentforging.block.ToolForgeBlockEntity;
 import me.almana.silentforging.forge.ForgeAction;
 import me.almana.silentforging.forge.ForgeQuality;
+import me.almana.silentforging.recipe.ForgeMaterialTags;
 import me.almana.silentforging.setup.SfBlocks;
 import me.almana.silentforging.setup.SfMenus;
 import net.minecraft.core.BlockPos;
@@ -51,7 +52,7 @@ public class ToolForgeMenu extends AbstractContainerMenu {
         addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_MATERIAL, 86, 47) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return MaterialInstance.from(stack) != null;
+                return ForgeMaterialTags.isIngotOrGem(stack) && MaterialInstance.from(stack) != null;
             }
 
             @Override
@@ -153,7 +154,7 @@ public class ToolForgeMenu extends AbstractContainerMenu {
                 if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_BLUEPRINT, ToolForgeBlockEntity.SLOT_BLUEPRINT + 1, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (MaterialInstance.from(stack) != null) {
+            } else if (ForgeMaterialTags.isIngotOrGem(stack) && MaterialInstance.from(stack) != null) {
                 if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_MATERIAL, ToolForgeBlockEntity.SLOT_MATERIAL + 1, false)) {
                     return ItemStack.EMPTY;
                 }
