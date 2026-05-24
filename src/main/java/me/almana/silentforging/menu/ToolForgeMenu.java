@@ -140,35 +140,56 @@ public class ToolForgeMenu extends AbstractContainerMenu {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        ItemStack result = ItemStack.EMPTY;
         Slot slot = slots.get(index);
-        if (slot.hasItem()) {
-            ItemStack stack = slot.getItem();
-            result = stack.copy();
-            if (index < FORGE_SLOTS) {
-                if (!moveItemStackTo(stack, FORGE_SLOTS, slots.size(), true)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (stack.getItem() instanceof IBlueprint) {
-                if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_BLUEPRINT, ToolForgeBlockEntity.SLOT_BLUEPRINT + 1, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (MaterialInstance.from(stack) != null) {
-                if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_MATERIAL, ToolForgeBlockEntity.SLOT_MATERIAL + 1, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else {
+
+        if(!slot.hasItem())
+        {
+            return ItemStack.EMPTY;
+        }
+        
+        ItemStack stack = slot.getItem();
+        ItemStack result = slot.getItem().copy();
+
+        if(index < FORGE_SLOTS)
+        {
+            if(!moveItemStackTo(stack, FORGE_SLOTS, slots.size(), true))
+            {
                 return ItemStack.EMPTY;
             }
-            if (stack.isEmpty()) {
-                slot.setByPlayer(ItemStack.EMPTY);
-            } else {
-                slot.setChanged();
-            }
-            if (index < FORGE_SLOTS) {
-                forge.resetProgress();
+        }
+        else if(stack.getItem() instanceof IBlueprint)
+        {
+            if(!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_BLUEPRINT, ToolForgeBlockEntity.SLOT_BLUEPRINT + 1, false))
+            {
+                return ItemStack.EMPTY;
             }
         }
+        else if(MaterialInstance.from(stack) != null)
+        {
+            if(!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_MATERIAL, ToolForgeBlockEntity.SLOT_MATERIAL + 1, false))
+            {
+                return ItemStack.EMPTY;
+            }
+        }
+        else
+        {
+            return ItemStack.EMPTY;
+        }
+
+        if(stack.isEmpty())
+        {
+            slot.setByPlayer(ItemStack.EMPTY);
+        }
+        else
+        {
+            slot.setChanged();
+        }
+
+        if(index < FORGE_SLOTS)
+        {
+            forge.resetProgress();
+        }
+
         return result;
     }
 
