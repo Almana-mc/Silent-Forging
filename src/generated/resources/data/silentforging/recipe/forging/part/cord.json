@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 5,
+  "rules": [
+    "draw_last"
+  ],
+  "source_recipe": "silentgear:part/cord",
+  "target": 40
+}

@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 6,
+  "rules": [
+    "extrude_last"
+  ],
+  "source_recipe": "silentgear:gear/trident_head",
+  "target": 92
+}

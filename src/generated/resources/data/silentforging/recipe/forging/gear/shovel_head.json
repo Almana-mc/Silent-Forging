@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 5,
+  "rules": [
+    "bend_last"
+  ],
+  "source_recipe": "silentgear:gear/shovel_head",
+  "target": 64
+}

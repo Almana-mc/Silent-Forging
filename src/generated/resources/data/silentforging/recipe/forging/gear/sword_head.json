@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 5,
+  "rules": [
+    "draw_last"
+  ],
+  "source_recipe": "silentgear:gear/sword_head",
+  "target": 74
+}

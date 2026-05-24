@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 5,
+  "rules": [
+    "hit_last"
+  ],
+  "source_recipe": "silentgear:gear/shears_head",
+  "target": 58
+}

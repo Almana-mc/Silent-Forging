@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 5,
+  "rules": [
+    "temper_last"
+  ],
+  "source_recipe": "silentgear:gear/necklace_main_only",
+  "target": 46
+}

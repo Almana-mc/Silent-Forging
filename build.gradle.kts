@@ -57,7 +57,7 @@ neoForge {
         }
 
         create("data") {
-            clientData()
+            serverData()
             programArguments.addAll(
                 "--mod", mod_id,
                 "--all",

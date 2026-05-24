@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 5,
+  "rules": [
+    "extrude_last"
+  ],
+  "source_recipe": "silentgear:gear/excavator_head",
+  "target": 94
+}

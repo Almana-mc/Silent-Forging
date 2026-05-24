@@ -1,0 +1,9 @@
+{
+  "type": "silentforging:forging",
+  "range": 6,
+  "rules": [
+    "hit_last"
+  ],
+  "source_recipe": "silentgear:gear/legging_plates",
+  "target": 90
+}
