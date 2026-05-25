@@ -16,7 +16,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.silentchaos512.gear.gear.material.MaterialInstance;
 import net.silentchaos512.gear.item.blueprint.IBlueprint;
 
 public class ToolForgeMenu extends AbstractContainerMenu {
@@ -52,7 +51,7 @@ public class ToolForgeMenu extends AbstractContainerMenu {
         addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_MATERIAL, 86, 47) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ForgeMaterialTags.isIngotOrGem(stack) && MaterialInstance.from(stack) != null;
+                return ForgeMaterialTags.isIngotOrGem(stack);
             }
 
             @Override
@@ -154,7 +153,7 @@ public class ToolForgeMenu extends AbstractContainerMenu {
                 if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_BLUEPRINT, ToolForgeBlockEntity.SLOT_BLUEPRINT + 1, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (ForgeMaterialTags.isIngotOrGem(stack) && MaterialInstance.from(stack) != null) {
+            } else if (ForgeMaterialTags.isIngotOrGem(stack)) {
                 if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_MATERIAL, ToolForgeBlockEntity.SLOT_MATERIAL + 1, false)) {
                     return ItemStack.EMPTY;
                 }
