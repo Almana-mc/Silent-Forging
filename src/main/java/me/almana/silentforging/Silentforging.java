@@ -1,5 +1,6 @@
 package me.almana.silentforging;
 
+import me.almana.silentforging.compat.jei.ForgeRecipeSnapshot;
 import me.almana.silentforging.data.SfDataGenerators;
 import me.almana.silentforging.recipe.SilentGearPartRecipes;
 import me.almana.silentforging.setup.SfBlockEntities;
@@ -13,6 +14,7 @@ import me.almana.silentforging.setup.SfRecipes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLLoader;
 
 @Mod(Silentforging.MODID)
 public class Silentforging {
@@ -30,5 +32,8 @@ public class Silentforging {
         SfCreativeTabs.TABS.register(modEventBus);
         modEventBus.addListener(SfDataGenerators::gatherData);
         NeoForge.EVENT_BUS.addListener(SilentGearPartRecipes::captureAndRemove);
+        if (FMLLoader.getCurrent().getDist().isClient()) {
+            ForgeRecipeSnapshot.register();
+        }
     }
 }

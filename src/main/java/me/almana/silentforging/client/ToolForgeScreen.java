@@ -36,13 +36,16 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
             ForgeAction.EXTRUDE,
             ForgeAction.TEMPER
     };
-    private static final String[] ACTION_LABELS = {
-            "+ BEN",
-            "+ HIT",
-            "+ DRW",
-            "- FLD",
-            "- EXT",
-            "- TMP"
+    private static final Identifier BUTTON_TEX = Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/button.png");
+    private static final Identifier BUTTON_HOVER_TEX = Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/button_highlight.png");
+    private static final Identifier BUTTON_PRESSED_TEX = Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/button_pressed.png");
+    private static final Identifier[] ACTION_ICONS = {
+            Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/bend.png"),
+            Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/hit.png"),
+            Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/draw.png"),
+            Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/fold.png"),
+            Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/upset.png"),
+            Identifier.fromNamespaceAndPath("silentforging", "textures/gui/tool_forge/temper.png")
     };
 
     private static final int FRAME_LIGHT = 0xFF7A6A55;
@@ -75,11 +78,14 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     private static final int BAR_Y = 78;
     private static final int BAR_W = 224;
     private static final int BAR_H = 12;
-    private static final int BUTTON_W = 36;
+    private static final int BUTTON_W = 22;
     private static final int BUTTON_H = 22;
-    private static final int BUTTON_GAP = 2;
+    private static final int BUTTON_GAP = 10;
+    private static final int BUTTON_ROW_W = 6 * BUTTON_W + 5 * BUTTON_GAP;
+    private static final int BUTTON_ROW_X = (WIDTH - BUTTON_ROW_W) / 2;
 
     private int ticks;
+    private int pressedButton = -1;
     private List<Identifier> materialGhosts;
 
     public ToolForgeScreen(ToolForgeMenu menu, Inventory inventory, Component title) {
@@ -118,7 +124,6 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
         drawSlots(graphics, x, y);
         drawProgress(graphics, x, y);
         drawActionsLabel(graphics, x, y);
-        drawActionDivider(graphics, x, y);
         drawActionButtons(graphics, mouseX, mouseY);
 
         panel(graphics, x, y + INV_TOP, WIDTH, HEIGHT - INV_TOP, PLATE, true);
@@ -130,12 +135,21 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
         if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT && menu.canForge()) {
             for (int i = 0; i < DISPLAYED_ACTIONS.length; i++) {
                 if (isActionButtonHovered(i, event.x(), event.y())) {
+                    pressedButton = i;
                     minecraft.gameMode.handleInventoryButtonClick(menu.containerId, DISPLAYED_ACTIONS[i].ordinal());
                     return true;
                 }
             }
         }
         return super.mouseClicked(event, doubleClick);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            pressedButton = -1;
+        }
+        return super.mouseReleased(event);
     }
 
     private void drawTitleBar(GuiGraphicsExtractor graphics, int ox, int oy) {
@@ -273,24 +287,35 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
         graphics.text(font, Component.translatable("gui.silentforging.actions"), ox + 12, oy + 106, INK_DIM, false);
     }
 
-    private void drawActionDivider(GuiGraphicsExtractor graphics, int ox, int oy) {
-        graphics.text(font, "|", ox + 126, oy + 122, INK_DIM, false);
-    }
-
     private void drawActionButtons(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         boolean active = menu.canForge();
+        int hoveredIndex = -1;
         for (int i = 0; i < DISPLAYED_ACTIONS.length; i++) {
             int x = actionButtonX(i);
             int y = actionButtonY();
-            boolean hovered = active && isActionButtonHovered(i, mouseX, mouseY);
-            int bg = hovered ? FRAME_LIGHT : FRAME_DARK;
-            int edge = active ? ACCENT : FRAME_MID;
-            panel(graphics, x, y, BUTTON_W, BUTTON_H, bg, true);
-            graphics.fill(x + 2, y + 2, x + BUTTON_W - 2, y + 3, edge);
-
-            String label = ACTION_LABELS[i];
-            int color = active ? INK : INK_DIM;
-            graphics.text(font, label, x + (BUTTON_W - font.width(label)) / 2, y + 7, color, false);
+            boolean hovered = isActionButtonHovered(i, mouseX, mouseY);
+            if (hovered) {
+                hoveredIndex = i;
+            }
+            Identifier bg;
+            if (active && pressedButton == i) {
+                bg = BUTTON_PRESSED_TEX;
+            } else if (active && hovered) {
+                bg = BUTTON_HOVER_TEX;
+            } else {
+                bg = BUTTON_TEX;
+            }
+            graphics.blit(RenderPipelines.GUI_TEXTURED, bg, x, y, 0.0F, 0.0F, BUTTON_W, BUTTON_H, BUTTON_W, BUTTON_H, ARGB.white(1.0F));
+            int iconTint = active ? ARGB.white(1.0F) : ARGB.white(0.4F);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ACTION_ICONS[i], x, y, 0.0F, 0.0F, BUTTON_W, BUTTON_H, BUTTON_W, BUTTON_H, iconTint);
+        }
+        if (hoveredIndex >= 0) {
+            ForgeAction action = DISPLAYED_ACTIONS[hoveredIndex];
+            int power = action.power();
+            String sign = power >= 0 ? "+" : "";
+            Component tip = Component.translatable("button.silentforging." + action.key())
+                    .append(Component.literal(" (" + sign + power + "%)"));
+            graphics.setTooltipForNextFrame(tip, mouseX, mouseY);
         }
     }
 
@@ -301,7 +326,7 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
     }
 
     private int actionButtonX(int index) {
-        return leftPos + 8 + index * (BUTTON_W + BUTTON_GAP) + (index > 2 ? 14 : 0);
+        return leftPos + BUTTON_ROW_X + index * (BUTTON_W + BUTTON_GAP);
     }
 
     private int actionButtonY() {
