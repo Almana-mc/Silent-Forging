@@ -279,8 +279,6 @@ public class ToolForgeScreen extends AbstractContainerScreen<ToolForgeMenu> {
         graphics.fill(markerX - 1, y - 2, markerX + 2, y + BAR_H + 2, INK);
 
         graphics.text(font, Component.translatable("gui.silentforging.progress"), x, y + BAR_H + 3, INK_DIM, false);
-        String pct = menu.progress() + "% / " + (targetMin + targetMax) / 2 + "%";
-        graphics.text(font, pct, x + BAR_W - font.width(pct), y + BAR_H + 3, INK, false);
     }
 
     private void drawActionsLabel(GuiGraphicsExtractor graphics, int ox, int oy) {

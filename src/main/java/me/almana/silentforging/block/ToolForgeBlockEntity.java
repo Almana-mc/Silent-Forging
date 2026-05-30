@@ -10,6 +10,7 @@ import me.almana.silentforging.recipe.ForgeMaterialTags;
 import me.almana.silentforging.recipe.ForgingRecipe;
 import me.almana.silentforging.recipe.SilentGearPartRecipes;
 import me.almana.silentforging.setup.SfBlockEntities;
+import me.almana.silentforging.setup.SfConfig;
 import me.almana.silentforging.setup.SfRecipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -147,7 +148,7 @@ public class ToolForgeBlockEntity extends BlockEntity implements MenuProvider {
         if (benchmark.hasFailed(work.strikes())) {
             fail(recipe);
             playSound(SoundEvents.ITEM_BREAK, 0.8f, 1.0f);
-        } else if (work.isComplete(recipe.range())) {
+        } else if (work.isComplete(SfConfig.range())) {
             finish(recipe, quality);
             playSound(SoundEvents.ENCHANTMENT_TABLE_USE, 0.8f, 1.0f);
         }
@@ -200,13 +201,13 @@ public class ToolForgeBlockEntity extends BlockEntity implements MenuProvider {
 
     private int targetMin() {
         return currentProfile()
-                .map(profile -> profile.recipe().target() - profile.recipe().range())
+                .map(profile -> profile.recipe().target() - SfConfig.range())
                 .orElseGet(() -> work == null ? difficulty.targetMin() : work.target() - 3);
     }
 
     private int targetMax() {
         return currentProfile()
-                .map(profile -> profile.recipe().target() + profile.recipe().range())
+                .map(profile -> profile.recipe().target() + SfConfig.range())
                 .orElseGet(() -> work == null ? difficulty.targetMax() : work.target() + 3);
     }
 

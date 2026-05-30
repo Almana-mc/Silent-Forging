@@ -7,10 +7,13 @@ import me.almana.silentforging.recipe.GatedPartRecipe;
 import me.almana.silentforging.setup.SfDataComponents;
 import me.almana.silentforging.setup.SfRecipes;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -30,6 +33,7 @@ import java.util.Map;
 
 public final class ForgingDisplays {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Identifier BLUEPRINT_ID = Identifier.fromNamespaceAndPath("silentgear", "blueprint_package");
 
     private ForgingDisplays() {
     }
@@ -45,11 +49,12 @@ public final class ForgingDisplays {
             bySource.put(holder.value().sourceRecipe(), holder.value());
         }
         int missingDelegate = 0;
-        int noClassify = 0;
+        int unclassified = 0;
         for (ForgingRecipe profile : bySource.values()) {
             CraftingRecipe delegate = resolveDelegate(recipes, profile.sourceRecipe());
             if (delegate == null) {
                 missingDelegate++;
+                displays.add(fallback(profile));
                 continue;
             }
             Ingredient blueprint = null;
@@ -66,18 +71,32 @@ public final class ForgingDisplays {
                 }
             }
             if (blueprint == null || materialCost == 0) {
-                noClassify++;
+                unclassified++;
+                displays.add(fallback(profile));
                 continue;
             }
             displays.add(new ForgingDisplay(blueprint, List.copyOf(extras), materialCost,
                     profile.target(), profile.range(), profile.rules(), delegate));
         }
         LOGGER.info("JEI tool forge: {} profiles, {} displays ({} missing delegate, {} unclassified)",
-                bySource.size(), displays.size(), missingDelegate, noClassify);
+                bySource.size(), displays.size(), missingDelegate, unclassified);
         return displays;
     }
 
+    private static ForgingDisplay fallback(ForgingRecipe profile) {
+        return new ForgingDisplay(blueprintIngredient(), List.of(), 1,
+                profile.target(), profile.range(), profile.rules(), null);
+    }
+
+    private static Ingredient blueprintIngredient() {
+        Item blueprint = BuiltInRegistries.ITEM.getOptional(BLUEPRINT_ID).orElse(Items.PAPER);
+        return Ingredient.of(blueprint);
+    }
+
     public static ItemStack assemble(ForgingDisplay display, ItemStack material) {
+        if (display.recipe() == null) {
+            return ItemStack.EMPTY;
+        }
         NonNullList<ItemStack> stacks = NonNullList.withSize(9, ItemStack.EMPTY);
         display.blueprint().items().findFirst()
                 .ifPresent(holder -> stacks.set(0, new ItemStack(holder.value())));

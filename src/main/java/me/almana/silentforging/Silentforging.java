@@ -9,18 +9,22 @@ import me.almana.silentforging.setup.SfCreativeTabs;
 import me.almana.silentforging.setup.SfDataComponents;
 import me.almana.silentforging.setup.SfItems;
 import me.almana.silentforging.setup.SfMaterialModifiers;
+import me.almana.silentforging.setup.SfConfig;
 import me.almana.silentforging.setup.SfMenus;
 import me.almana.silentforging.setup.SfRecipes;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLLoader;
 
 @Mod(Silentforging.MODID)
 public class Silentforging {
     public static final String MODID = "silentforging";
 
-    public Silentforging(IEventBus modEventBus) {
+    public Silentforging(IEventBus modEventBus, ModContainer container) {
+        container.registerConfig(ModConfig.Type.SERVER, SfConfig.SPEC);
         SfDataComponents.DATA_COMPONENTS.register(modEventBus);
         SfBlocks.BLOCKS.register(modEventBus);
         SfItems.ITEMS.register(modEventBus);
