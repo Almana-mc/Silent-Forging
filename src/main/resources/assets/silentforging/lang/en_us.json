@@ -1,5 +1,7 @@
 {
   "block.silentforging.tool_forge": "Tool Forge",
+  "guide.silentforging.guide": "SilentForging Guide",
+  "guide.silentforging.guide.tooltip": "How to forge gear parts",
   "container.silentforging.tool_forge": "Tool Forge",
   "itemGroup.silentforging": "Silent Forging",
   "button.silentforging.bend": "+ Bend",

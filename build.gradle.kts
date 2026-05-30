@@ -85,6 +85,7 @@ dependencies {
     implementation("curse.maven:silent-gear-297039:8089163")
     implementation("curse.maven:silent-lib-242998:7936002")
     implementation("curse.maven:jei-238222:8014757")
+    implementation("curse.maven:guideme-1173950:8129704")
 }
 
 val generateModMetadata = tasks.register<ProcessResources>("generateModMetadata") {

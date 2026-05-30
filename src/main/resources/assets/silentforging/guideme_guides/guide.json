@@ -1,0 +1,14 @@
+{
+  "item_settings": {
+    "display_name": {
+      "type": "translatable",
+      "translate": "guide.silentforging.guide"
+    },
+    "tooltip_lines": [
+      {
+        "translate": "guide.silentforging.guide.tooltip",
+        "color": "dark_gray"
+      }
+    ]
+  }
+}
