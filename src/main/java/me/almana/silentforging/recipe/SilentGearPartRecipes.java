@@ -3,6 +3,7 @@ package me.almana.silentforging.recipe;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import me.almana.silentforging.forge.ForgeQuality;
+import me.almana.silentforging.forge.ForgeRule;
 import me.almana.silentforging.setup.SfDataComponents;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
@@ -22,9 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public final class SilentGearPartRecipes {
     private static final Map<Identifier, CapturedRecipe> PART_RECIPES = new HashMap<>();
+    private static final Set<String> CRAFTABLE_PARTS = Set.of("part/tip", "part/coating");
 
     private SilentGearPartRecipes() {
     }
@@ -46,7 +49,9 @@ public final class SilentGearPartRecipes {
                         materialCost(original),
                         staticIngredients(event, original)
                 ));
-                rewrites.put(id, wrap(original));
+                if (!CRAFTABLE_PARTS.contains(id.getPath())) {
+                    rewrites.put(id, wrap(original));
+                }
             }
         }
         event.getRecipeJsons().putAll(rewrites);
@@ -86,7 +91,17 @@ public final class SilentGearPartRecipes {
                 return Optional.of(new ProfileMatch(entry.profileId().toString(), recipe));
             }
         }
+        for (Identifier sourceId : PART_RECIPES.keySet()) {
+            ForgingRecipe recipe = fallbackRecipe(sourceId);
+            if (match(recipe, blueprint, material, level).isPresent()) {
+                return Optional.of(new ProfileMatch("silentforging:forging/" + sourceId.getPath(), recipe));
+            }
+        }
         return Optional.empty();
+    }
+
+    private static ForgingRecipe fallbackRecipe(Identifier sourceId) {
+        return new ForgingRecipe(sourceId, 64, 5, List.of(ForgeRule.HIT_LAST));
     }
 
     private static boolean isSilentGearCompoundRecipeId(Identifier id) {

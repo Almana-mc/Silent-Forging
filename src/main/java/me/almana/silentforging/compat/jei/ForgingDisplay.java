@@ -8,6 +8,7 @@ import java.util.List;
 
 public record ForgingDisplay(
         Ingredient blueprint,
+        Ingredient material,
         List<Ingredient> extras,
         int materialCost,
         int target,

@@ -58,6 +58,7 @@ public final class ForgingDisplays {
                 continue;
             }
             Ingredient blueprint = null;
+            Ingredient material = null;
             int materialCost = 0;
             List<Ingredient> extras = new ArrayList<>();
             for (Ingredient ingredient : delegate.placementInfo().ingredients()) {
@@ -66,16 +67,19 @@ public final class ForgingDisplays {
                     blueprint = ingredient;
                 } else if (custom instanceof PartMaterialIngredient) {
                     materialCost++;
+                    if (material == null) {
+                        material = ingredient;
+                    }
                 } else {
                     extras.add(ingredient);
                 }
             }
-            if (blueprint == null || materialCost == 0) {
+            if (blueprint == null || material == null) {
                 unclassified++;
                 displays.add(fallback(profile));
                 continue;
             }
-            displays.add(new ForgingDisplay(blueprint, List.copyOf(extras), materialCost,
+            displays.add(new ForgingDisplay(blueprint, material, List.copyOf(extras), materialCost,
                     profile.target(), profile.range(), profile.rules(), delegate));
         }
         LOGGER.info("JEI tool forge: {} profiles, {} displays ({} missing delegate, {} unclassified)",
@@ -84,7 +88,7 @@ public final class ForgingDisplays {
     }
 
     private static ForgingDisplay fallback(ForgingRecipe profile) {
-        return new ForgingDisplay(blueprintIngredient(), List.of(), 1,
+        return new ForgingDisplay(blueprintIngredient(), Ingredient.of(Items.IRON_INGOT), List.of(), 1,
                 profile.target(), profile.range(), profile.rules(), null);
     }
 

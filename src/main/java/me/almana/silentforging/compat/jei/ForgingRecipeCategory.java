@@ -12,15 +12,11 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ForgingRecipeCategory implements IRecipeCategory<ForgingDisplay> {
@@ -31,8 +27,6 @@ public class ForgingRecipeCategory implements IRecipeCategory<ForgingDisplay> {
     private static final int HEIGHT = 22;
     private static final int SLOT_Y = 2;
     private static final int OUTPUT_X = WIDTH - 18;
-
-    private static List<ItemStack> materialCache;
 
     private final IDrawable icon;
     private final IDrawable arrow;
@@ -70,16 +64,16 @@ public class ForgingRecipeCategory implements IRecipeCategory<ForgingDisplay> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ForgingDisplay display, IFocusGroup focuses) {
         builder.addInputSlot(0, SLOT_Y).setStandardSlotBackground().addItemStacks(blueprintStacks(display));
-        builder.addInputSlot(20, SLOT_Y).setStandardSlotBackground().addItemStacks(materials());
+        builder.addInputSlot(20, SLOT_Y).setStandardSlotBackground().add(display.material());
         List<Ingredient> extras = display.extras();
         for (int i = 0; i < extras.size(); i++) {
             builder.addInputSlot(40 + i * 20, SLOT_Y).setStandardSlotBackground().add(extras.get(i));
         }
         ItemStack material = focuses.getItemStackFocuses(RecipeIngredientRole.INPUT)
                 .map(focus -> focus.getTypedValue().getIngredient())
-                .filter(ForgeMaterialTags::isIngotOrGem)
+                .filter(ForgeMaterialTags::isForgeMaterial)
                 .findFirst()
-                .orElse(new ItemStack(Items.IRON_INGOT));
+                .orElseGet(() -> defaultMaterial(display));
         ItemStack output = ForgingDisplays.assemble(display, material);
         if (!output.isEmpty()) {
             builder.addOutputSlot(OUTPUT_X, SLOT_Y).setStandardSlotBackground().add(output);
@@ -99,18 +93,9 @@ public class ForgingRecipeCategory implements IRecipeCategory<ForgingDisplay> {
         return (WIDTH - arrow.getWidth()) / 2;
     }
 
-    private static List<ItemStack> materials() {
-        if (materialCache == null) {
-            List<ItemStack> stacks = new ArrayList<>();
-            addTag(stacks, ForgeMaterialTags.INGOTS);
-            addTag(stacks, ForgeMaterialTags.GEMS);
-            materialCache = stacks;
-        }
-        return materialCache;
-    }
-
-    private static void addTag(List<ItemStack> stacks, TagKey<Item> tag) {
-        BuiltInRegistries.ITEM.get(tag).ifPresent(holders ->
-                holders.forEach(holder -> stacks.add(new ItemStack(holder.value()))));
+    private static ItemStack defaultMaterial(ForgingDisplay display) {
+        return display.material().items().findFirst()
+                .map(holder -> new ItemStack(holder.value()))
+                .orElse(new ItemStack(Items.IRON_INGOT));
     }
 }

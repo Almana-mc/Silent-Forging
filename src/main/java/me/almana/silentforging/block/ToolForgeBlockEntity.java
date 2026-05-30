@@ -112,7 +112,7 @@ public class ToolForgeBlockEntity extends BlockEntity implements MenuProvider {
         }
         ItemStack blueprint = inventory.getItem(SLOT_BLUEPRINT);
         ItemStack material = inventory.getItem(SLOT_MATERIAL);
-        if (!ForgeMaterialTags.isIngotOrGem(material)) {
+        if (!ForgeMaterialTags.isForgeMaterial(material)) {
             return Optional.empty();
         }
         Optional<ActiveProfile> datapackProfile = serverLevel.recipeAccess()

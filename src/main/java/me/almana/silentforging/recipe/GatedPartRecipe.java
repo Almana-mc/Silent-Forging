@@ -80,7 +80,7 @@ public final class GatedPartRecipe implements CraftingRecipe {
 
     private static boolean hasGatedMaterial(CraftingInput input) {
         for (int i = 0; i < input.size(); i++) {
-            if (ForgeMaterialTags.isIngotOrGem(input.getItem(i))) {
+            if (ForgeMaterialTags.isForgeMaterial(input.getItem(i))) {
                 return true;
             }
         }

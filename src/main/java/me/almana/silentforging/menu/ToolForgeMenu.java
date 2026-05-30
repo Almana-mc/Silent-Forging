@@ -51,7 +51,7 @@ public class ToolForgeMenu extends AbstractContainerMenu {
         addSlot(new Slot(container, ToolForgeBlockEntity.SLOT_MATERIAL, 86, 47) {
             @Override
             public boolean mayPlace(ItemStack stack) {
-                return ForgeMaterialTags.isIngotOrGem(stack);
+                return ForgeMaterialTags.isForgeMaterial(stack);
             }
 
             @Override
@@ -153,7 +153,7 @@ public class ToolForgeMenu extends AbstractContainerMenu {
                 if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_BLUEPRINT, ToolForgeBlockEntity.SLOT_BLUEPRINT + 1, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (ForgeMaterialTags.isIngotOrGem(stack)) {
+            } else if (ForgeMaterialTags.isForgeMaterial(stack)) {
                 if (!moveItemStackTo(stack, ToolForgeBlockEntity.SLOT_MATERIAL, ToolForgeBlockEntity.SLOT_MATERIAL + 1, false)) {
                     return ItemStack.EMPTY;
                 }
