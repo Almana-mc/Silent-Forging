@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:anvil",
+    "C": "minecraft:campfire",
+    "P": [
+      "minecraft:wooden_pickaxe",
+      "minecraft:stone_pickaxe",
+      "minecraft:iron_pickaxe",
+      "minecraft:golden_pickaxe",
+      "minecraft:diamond_pickaxe",
+      "minecraft:netherite_pickaxe"
+    ],
+    "S": "#c:tools/shear"
+  },
+  "pattern": [
+    "   ",
+    "PAS",
+    " C "
+  ],
+  "result": {
+    "id": "silentforging:tool_forge"
+  }
+}

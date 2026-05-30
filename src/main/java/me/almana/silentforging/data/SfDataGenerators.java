@@ -14,6 +14,7 @@ public final class SfDataGenerators {
     public static void gatherData(GatherDataEvent.Server event) {
         event.createProvider(ForgeProfileProvider::new);
         event.createProvider(SfBlockTagProvider::new);
+        event.createProvider(SfRecipeProvider.Runner::new);
         event.createProvider((output, lookupProvider) -> new LootTableProvider(
                 output,
                 Set.of(),
